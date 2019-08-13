@@ -50,27 +50,37 @@ String sendATcommand(String toSend, unsigned long milliseconds) {
   return result;
 }
 
-
+const int LED = 13;
+const int Potenciometro = A5;
+int ligado = 0;
 
 void setup() {
   
   Serial.begin(9600);
   radioLora.begin(BAUDRATE);
   
+  pinMode(Potenciometro, INPUT);
+  pinMode(LED, OUTPUT);
+  
 }
 
 void loop() {
 
-  String comando = "";
-  if(Serial.available())  
-  {     
-    comando=Serial.readString();
-    sendATcommand(comando, 2000);  
-  } 
-
-  if (radioLora.available())
+  int leituraPotenciometro = analogRead(Potenciometro);
+  if ( leituraPotenciometro > 512 && ligado == 0 )
   {
-    Serial.print("Recebido: ");
-    Serial.println(radioLora.readString());
+    ligado = 1;
+    Serial.println("Liga");
+    digitalWrite(LED, HIGH);
+    sendATcommand("AT+SEND=2:ON", 2000);
+
   }
+  else if ( leituraPotenciometro < 512 && ligado == 1 )
+  {
+    ligado = 0;
+    Serial.println("Desliga");
+    digitalWrite(LED, LOW);
+    sendATcommand("AT+SEND=2:OFF", 2000);
+  }
+ 
 }
